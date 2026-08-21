@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoiCloud — ডিজিটাল গ্রন্থাগার</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3ECDA;
+    --paper-dark:#E7DCC0;
+    --ink:#241C15;
+    --ink-soft:#5B4E3D;
+    --forest:#21402F;
+    --forest-dark:#152A1F;
+    --brass:#AD8236;
+    --brass-light:#D9BC7C;
+    --rust:#8B3A2B;
+    --card:#FFFDF8;
+    --shadow: 0 6px 18px rgba(36,28,21,0.16);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Hind Siliguri', sans-serif;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(36,28,21,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+  .display{font-family:'Tiro Bangla', serif;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  header{
+    background:linear-gradient(180deg, var(--forest) 0%, var(--forest-dark) 100%);
+    color:var(--paper);
+    padding:28px 24px 22px;
+    border-bottom:6px solid var(--brass);
+  }
+  .header-inner{
+    max-width:1080px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .wordmark{
+    font-size:2.1rem;
+    letter-spacing:0.5px;
+    margin:0;
+  }
+  .tagline{
+    margin:6px 0 0;
+    color:var(--brass-light);
+    font-size:0.92rem;
+    letter-spacing:0.3px;
+  }
+  .lib-toggle{
+    background:transparent;
+    border:1.5px solid var(--brass-light);
+    color:var(--brass-light);
+    padding:8px 16px;
+    border-radius:3px;
+    cursor:pointer;
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:0.9rem;
+    transition:all .15s ease;
+  }
+  .lib-toggle:hover{background:var(--brass-light); color:var(--forest-dark);}
+
+  main{max-width:1080px; margin:0 auto; padding:26px 24px 70px;}
+
+  .search-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:26px;
+    flex-wrap:wrap;
+  }
+  .search-row input{
+    flex:1;
+    min-width:220px;
+    padding:12px 14px;
+    border:none;
+    border-bottom:2.5px solid var(--brass);
+    background:var(--card);
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:1rem;
+    color:var(--ink);
+    box-shadow:var(--shadow);
+  }
+  .search-row input:focus{outline:none; border-bottom-color:var(--rust);}
+  .count-tag{
+    align-self:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  /* admin panel */
+  .admin-panel{
+    background:var(--card);
+    border:1.5px dashed var(--brass);
+    border-radius:6px;
+    padding:20px 22px;
+    margin-bottom:30px;
+    box-shadow:var(--shadow);
+  }
+  .admin-panel h2{
+    margin:0 0 4px;
+    font-size:1.2rem;
+  }
+  .admin-panel .sub{
+    color:var(--ink-soft);
+    font-size:0.85rem;
+    margin:0 0 16px;
+  }
+  .admin-lock{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .admin-lock input{
+    padding:10px 12px;
+    border:1px solid var(--brass);
+    border-radius:4px;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .btn{
+    background:var(--forest);
+    color:var(--paper);
+    border:none;
+    padding:10px 18px;
+    border-radius:4px;
+    cursor:pointer;
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:0.92rem;
+  }
+  .btn:hover{background:var(--forest-dark);}
+  .btn.rust{background:var(--rust);}
+  .btn.rust:hover{background:#6f2c20;}
+  .btn.ghost{background:transparent; color:var(--forest); border:1.5px solid var(--forest);}
+  .btn.ghost:hover{background:var(--forest); color:var(--paper);}
+  .err-msg{color:var(--rust); font-size:0.85rem; margin-top:8px;}
+
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-top:6px;
+  }
+  .form-grid .full{grid-column:1/-1;}
+  label{
+    display:block;
+    font-size:0.8rem;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .form-grid input[type=text], .form-grid input[type=url], select{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid #D8CBA9;
+    border-radius:4px;
+    font-family:'Hind Siliguri', sans-serif;
+    background:#fff;
+  }
+  .pdf-source-toggle{
+    display:flex;
+    gap:14px;
+    font-size:0.85rem;
+    margin-bottom:8px;
+  }
+  .form-actions{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .hint{font-size:0.78rem; color:var(--ink-soft);}
+
+  .manage-list{margin-top:22px; border-top:1px solid #DFD3AF; padding-top:14px;}
+  .manage-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 0;
+    border-bottom:1px dotted #D8CBA9;
+    font-size:0.9rem;
+    gap:10px;
+  }
+  .manage-row .mtitle{font-weight:600;}
+  .manage-row .mmeta{color:var(--ink-soft); font-size:0.8rem;}
+  .del-btn{
+    background:none;
+    border:1px solid var(--rust);
+    color:var(--rust);
+    padding:5px 10px;
+    border-radius:4px;
+    cursor:pointer;
+    font-size:0.78rem;
+    flex-shrink:0;
+  }
+  .del-btn:hover{background:var(--rust); color:#fff;}
+
+  /* book grid */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+    gap:22px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:3px 3px 8px 8px;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    position:relative;
+    padding-top:14px;
+    transition:transform .15s ease, box-shadow .15s ease;
+    display:flex;
+    flex-direction:column;
+  }
+  .card:hover{transform:translateY(-4px); box-shadow:0 12px 26px rgba(36,28,21,0.22);}
+  .punch{
+    width:10px; height:10px; border-radius:50%;
+    background:var(--paper);
+    box-shadow:inset 0 0 0 1.5px var(--brass);
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+  }
+  .call-number{
+    position:absolute;
+    top:10px; right:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    background:var(--brass-light);
+    color:var(--forest-dark);
+    padding:2px 6px;
+    border-radius:2px;
+    letter-spacing:0.3px;
+  }
+  .cover{
+    height:160px;
+    margin:22px 14px 12px;
+    border-radius:2px;
+    background-size:cover;
+    background-position:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-family:'Tiro Bangla', serif;
+    font-size:2.4rem;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+  }
+  .card-body{padding:0 14px 16px; flex:1; display:flex; flex-direction:column;}
+  .book-title{
+    font-family:'Tiro Bangla', serif;
+    font-size:1.05rem;
+    margin:0 0 4px;
+    line-height:1.3;
+  }
+  .book-author{
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  .card-actions{
+    margin-top:auto;
+    display:flex;
+    gap:8px;
+  }
+  .card-actions button{
+    flex:1;
+    font-size:0.78rem;
+    padding:7px 0;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+  }
+  .empty-state .display{font-size:1.4rem; color:var(--ink); margin-bottom:8px;}
+
+  /* modal viewer */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(20,15,10,0.72);
+    display:flex; align-items:center; justify-content:center;
+    z-index:50;
+    padding:24px;
+  }
+  .viewer{
+    background:#fff;
+    width:min(920px, 100%);
+    height:min(88vh, 900px);
+    border-radius:6px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .viewer-head{
+    background:var(--forest);
+    color:var(--paper);
+    padding:12px 16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .viewer-head h3{margin:0; font-family:'Tiro Bangla', serif; font-size:1.1rem;}
+  .viewer-head .actions{display:flex; gap:8px; flex-shrink:0;}
+  .icon-btn{
+    background:transparent;
+    border:1px solid var(--brass-light);
+    color:var(--brass-light);
+    padding:6px 12px;
+    border-radius:4px;
+    cursor:pointer;
+    font-size:0.8rem;
+    text-decoration:none;
+  }
+  .icon-btn:hover{background:var(--brass-light); color:var(--forest-dark);}
+  .viewer iframe{flex:1; border:none; width:100%;}
+  .no-pdf-msg{
+    flex:1; display:flex; align-items:center; justify-content:center;
+    color:var(--ink-soft); text-align:center; padding:30px; font-size:0.95rem;
+  }
+
+  .loading-msg{
+    text-align:center;
+    padding:60px;
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.85rem;
+  }
+
+  .shared-note{
+    font-size:0.75rem;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:34px;
+    line-height:1.6;
+  }
+
+  @media (max-width:560px){
+    .form-grid{grid-template-columns:1fr;}
+    .wordmark{font-size:1.6rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <h1 class="wordmark display">BoiCloud</h1>
+      <p class="tagline mono">সবার জন্য উন্মুক্ত বইয়ের সংগ্রহশালা</p>
+    </div>
+    <button class="lib-toggle" id="libToggleBtn">লাইব্রেরিয়ান মোড</button>
+  </div>
+</header>
+
+<main>
+  <div id="adminZone"></div>
+
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="বইয়ের নাম বা লেখকের নাম দিয়ে খুঁজুন...">
+    <span class="count-tag" id="countTag"></span>
+  </div>
+
+  <div id="gridZone">
+    <div class="loading-msg">সংগ্রহশালা লোড হচ্ছে...</div>
+  </div>
+
+  <p class="shared-note">এই লাইব্রেরির বই তালিকা সবার জন্য সংরক্ষিত (shared) — লাইব্রেরিয়ান মোড থেকে যোগ করা যেকোনো বই সব ভিজিটর দেখতে পাবেন।</p>
+</main>
+
+<div id="modalZone"></div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'library-books';
+  const ADMIN_PASSWORD = 'admin123'; // demo only — not real security
+  let books = [];
+  let isAdmin = false;
+  let pdfMode = 'url'; // 'url' or 'upload'
+  let pendingUploadDataUrl = null;
+
+  const coverColors = ['#21402F','#8B3A2B','#AD8236','#2E4A6B','#5B3A5C'];
+
+  function colorFor(str){
+    let h = 0;
+    for(let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h);
+    return coverColors[Math.abs(h) % coverColors.length];
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function loadBooks(){
+    try{
+      const res = await window.storage.get(STORAGE_KEY, true);
+      books = res ? JSON.parse(res.value) : [];
+    }catch(e){
+      // key doesn't exist yet — seed with sample books
+      books = seedBooks();
+      try{ await window.storage.set(STORAGE_KEY, JSON.stringify(books), true); }catch(e2){}
+    }
+    renderGrid();
+    renderAdminList();
+  }
+
+  function seedBooks(){
+    return [
+      {id:'b1', title:'পথের পাঁচালী', author:'বিভূতিভূষণ বন্দ্যোপাধ্যায়', category:'উপন্যাস', callNumber:'উপ-001', coverUrl:'', pdfSrc:'', addedAt:Date.now()},
+      {id:'b2', title:'শেষের কবিতা', author:'রবীন্দ্রনাথ ঠাকুর', category:'উপন্যাস', callNumber:'উপ-002', coverUrl:'', pdfSrc:'', addedAt:Date.now()},
+      {id:'b3', title:'লালসালু', author:'সৈয়দ ওয়ালীউল্লাহ', category:'উপন্যাস', callNumber:'উপ-003', coverUrl:'', pdfSrc:'', addedAt:Date.now()},
+    ];
+  }
+
+  async function saveBooks(){
+    try{
+      const result = await window.storage.set(STORAGE_KEY, JSON.stringify(books), true);
+      if(!result){ console.error('Save failed'); }
+    }catch(e){ console.error('Storage error', e); }
+  }
+
+  function renderGrid(){
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const filtered = books.filter(b =>
+      b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)
+    );
+    document.getElementById('countTag').textContent = `মোট ${books.length} টি বই`;
+
+    const zone = document.getElementById('gridZone');
+    if(filtered.length === 0){
+      zone.innerHTML = `<div class="empty-state">
+        <div class="display">কোনো বই পাওয়া যায়নি</div>
+        <div>${books.length === 0 ? 'লাইব্রেরিয়ান মোডে গিয়ে প্রথম বইটি যোগ করুন।' : 'অন্য কিছু দিয়ে খুঁজে দেখুন।'}</div>
+      </div>`;
+      return;
+    }
+
+    zone.innerHTML = `<div class="grid">` + filtered.map(b => `
+      <div class="card" data-id="${b.id}">
+        <div class="punch"></div>
+        <div class="call-number mono">${escapeHtml(b.callNumber||'')}</div>
+        <div class="cover" style="${b.coverUrl ? `background-image:url('${escapeHtml(b.coverUrl)}')` : `background:${colorFor(b.title)}`}">
+          ${b.coverUrl ? '' : escapeHtml(b.title.charAt(0))}
+        </div>
+        <div class="card-body">
+          <p class="book-title">${escapeHtml(b.title)}</p>
+          <p class="book-author">${escapeHtml(b.author)}</p>
+          <div class="card-actions">
+            <button class="btn ghost open-btn" data-id="${b.id}">পড়ুন</button>
+          </div>
+        </div>
+      </div>
+    `).join('') + `</div>`;
+
+    zone.querySelectorAll('.open-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        openViewer(btn.dataset.id);
+      });
+    });
+    zone.querySelectorAll('.card').forEach(card=>{
+      card.addEventListener('click', ()=> openViewer(card.dataset.id));
+    });
+  }
+
+  function openViewer(id){
+    const book = books.find(b=>b.id===id);
+    if(!book) return;
+    const zone = document.getElementById('modalZone');
+    const hasPdf = !!book.pdfSrc;
+    zone.innerHTML = `
+      <div class="overlay" id="overlayEl">
+        <div class="viewer">
+          <div class="viewer-head">
+            <h3>${escapeHtml(book.title)}</h3>
+            <div class="actions">
+              ${hasPdf ? `<a class="icon-btn" href="${escapeHtml(book.pdfSrc)}" download target="_blank" rel="noopener">ডাউনলোড</a>` : ''}
+              <button class="icon-btn" id="closeViewer">বন্ধ করুন ✕</button>
+            </div>
+          </div>
+          ${hasPdf
+            ? `<iframe src="${escapeHtml(book.pdfSrc)}"></iframe>`
+            : `<div class="no-pdf-msg">এই বইয়ের জন্য এখনও কোনো PDF যোগ করা হয়নি। লাইব্রেরিয়ান মোডে গিয়ে এই বইয়ে একটি PDF লিংক বা ফাইল যোগ করুন।</div>`
+          }
+        </div>
+      </div>`;
+    document.getElementById('closeViewer').addEventListener('click', ()=> zone.innerHTML='');
+    document.getElementById('overlayEl').addEventListener('click', (e)=>{
+      if(e.target.id === 'overlayEl') zone.innerHTML='';
+    });
+  }
+
+  // ---------- Admin ----------
+  function renderAdminZone(){
+    const zone = document.getElementById('adminZone');
+    if(!isAdmin){
+      zone.innerHTML = '';
+      return;
+    }
+    zone.innerHTML = `
+      <div class="admin-panel">
+        <h2 class="display">লাইব্রেরিয়ান মোড সক্রিয়</h2>
+        <p class="sub">নতুন বই যোগ করুন — এটি সাথে সাথে সবার জন্য দৃশ্যমান হবে।</p>
+
+        <div class="form-grid">
+          <div class="full">
+            <label>বইয়ের নাম *</label>
+            <input type="text" id="fTitle" placeholder="যেমনঃ চোখের বালি">
+          </div>
+          <div>
+            <label>লেখকের নাম *</label>
+            <input type="text" id="fAuthor" placeholder="যেমনঃ রবীন্দ্রনাথ ঠাকুর">
+          </div>
+          <div>
+            <label>ক্যাটাগরি</label>
+            <select id="fCategory">
+              <option value="উপন্যাস">উপন্যাস</option>
+              <option value="গল্প">গল্প</option>
+              <option value="কবিতা">কবিতা</option>
+              <option value="প্রবন্ধ">প্রবন্ধ</option>
+              <option value="অন্যান্য">অন্যান্য</option>
+            </select>
+          </div>
+          <div class="full">
+            <label>কভার ছবির লিংক (ঐচ্ছিক)</label>
+            <input type="url" id="fCover" placeholder="https://...">
+          </div>
+          <div class="full">
+            <label>PDF যোগ করার উপায়</label>
+            <div class="pdf-source-toggle">
+              <label style="display:flex;align-items:center;gap:5px;"><input type="radio" name="pdfMode" value="url" checked> লিংক দিন</label>
+              <label style="display:flex;align-items:center;gap:5px;"><input type="radio" name="pdfMode" value="upload"> ফাইল আপলোড করুন</label>
+            </div>
+            <input type="url" id="fPdfUrl" placeholder="https://example.com/book.pdf">
+            <input type="file" id="fPdfFile" accept="application/pdf" style="display:none; margin-top:6px;">
+            <div class="hint" id="uploadHint" style="display:none;">ডেমোর জন্য ৪ মেগাবাইটের কম ফাইল ব্যবহার করুন।</div>
+          </div>
+        </div>
+
+        <div id="formErr" class="err-msg" style="display:none;"></div>
+
+        <div class="form-actions">
+          <button class="btn" id="addBookBtn">বই যোগ করুন</button>
+          <button class="btn ghost" id="lockBtn">লক করুন</button>
+        </div>
+
+        <div class="manage-list" id="manageList"></div>
+      </div>
+    `;
+
+    zone.querySelectorAll('input[name=pdfMode]').forEach(r=>{
+      r.addEventListener('change', (e)=>{
+        pdfMode = e.target.value;
+        document.getElementById('fPdfUrl').style.display = pdfMode==='url' ? 'block':'none';
+        document.getElementById('fPdfFile').style.display = pdfMode==='upload' ? 'block':'none';
+        document.getElementById('uploadHint').style.display = pdfMode==='upload' ? 'block':'none';
+      });
+    });
+
+    document.getElementById('fPdfFile').addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      const errEl = document.getElementById('formErr');
+      errEl.style.display='none';
+      pendingUploadDataUrl = null;
+      if(!file) return;
+      if(file.size > 4*1024*1024){
+        errEl.textContent = 'ফাইলটি ৪ মেগাবাইটের বেশি। ছোট ফাইল বেছে নিন অথবা লিংক ব্যবহার করুন।';
+        errEl.style.display='block';
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = ()=>{ pendingUploadDataUrl = reader.result; };
+      reader.onerror = ()=>{
+        errEl.textContent = 'ফাইল পড়তে সমস্যা হয়েছে।';
+        errEl.style.display='block';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('addBookBtn').addEventListener('click', handleAddBook);
+    document.getElementById('lockBtn').addEventListener('click', ()=>{
+      isAdmin = false;
+      document.getElementById('libToggleBtn').textContent = 'লাইব্রেরিয়ান মোড';
+      renderAdminZone();
+    });
+
+    renderManageList();
+  }
+
+  async function handleAddBook(){
+    const errEl = document.getElementById('formErr');
+    errEl.style.display='none';
+    const title = document.getElementById('fTitle').value.trim();
+    const author = document.getElementById('fAuthor').value.trim();
+    const category = document.getElementById('fCategory').value;
+    const coverUrl = document.getElementById('fCover').value.trim();
+    const pdfUrl = document.getElementById('fPdfUrl').value.trim();
+
+    if(!title || !author){
+      errEl.textContent = 'বইয়ের নাম এবং লেখকের নাম আবশ্যক।';
+      errEl.style.display='block';
+      return;
+    }
+
+    let pdfSrc = '';
+    if(pdfMode === 'url'){
+      pdfSrc = pdfUrl;
+    }else{
+      if(!pendingUploadDataUrl){
+        errEl.textContent = 'একটি PDF ফাইল বেছে নিন।';
+        errEl.style.display='block';
+        return;
+      }
+      pdfSrc = pendingUploadDataUrl;
+    }
+
+    const catCode = {'উপন্যাস':'উপ','গল্প':'গল্প','কবিতা':'কবি','প্রবন্ধ':'প্রব','অন্যান্য':'অন্য'}[category] || 'অন্য';
+    const countInCat = books.filter(b=>b.category===category).length + 1;
+    const callNumber = `${catCode}-${String(countInCat).padStart(3,'0')}`;
+
+    const newBook = {
+      id: 'b' + Date.now(),
+      title, author, category, callNumber, coverUrl, pdfSrc,
+      addedAt: Date.now()
+    };
+    books.push(newBook);
+    await saveBooks();
+
+    document.getElementById('fTitle').value='';
+    document.getElementById('fAuthor').value='';
+    document.getElementById('fCover').value='';
+    document.getElementById('fPdfUrl').value='';
+    document.getElementById('fPdfFile').value='';
+    pendingUploadDataUrl = null;
+
+    renderGrid();
+    renderManageList();
+  }
+
+  function renderManageList(){
+    const list = document.getElementById('manageList');
+    if(!list) return;
+    if(books.length === 0){
+      list.innerHTML = `<p class="hint">এখনও কোনো বই যোগ করা হয়নি।</p>`;
+      return;
+    }
+    list.innerHTML = books.map(b => `
+      <div class="manage-row">
+        <div>
+          <div class="mtitle">${escapeHtml(b.title)}</div>
+          <div class="mmeta mono">${escapeHtml(b.callNumber)} · ${escapeHtml(b.author)} ${b.pdfSrc ? '' : '· (PDF নেই)'}</div>
+        </div>
+        <button class="del-btn" data-id="${b.id}">মুছুন</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('.del-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        books = books.filter(b=>b.id !== btn.dataset.id);
+        await saveBooks();
+        renderGrid();
+        renderManageList();
+      });
+    });
+  }
+
+  function renderAdminList(){ renderManageList(); }
+
+  // ---------- Librarian lock ----------
+  document.getElementById('libToggleBtn').addEventListener('click', ()=>{
+    if(isAdmin) return;
+    const zone = document.getElementById('adminZone');
+    zone.innerHTML = `
+      <div class="admin-panel">
+        <h2 class="display">লাইব্রেরিয়ান লগইন</h2>
+        <p class="sub">এটি একটি ডেমো — পাসওয়ার্ড: <span class="mono">admin123</span></p>
+        <div class="admin-lock">
+          <input type="password" id="pwInput" placeholder="পাসওয়ার্ড দিন">
+          <button class="btn" id="unlockBtn">প্রবেশ করুন</button>
+          <button class="btn ghost" id="cancelBtn">বাতিল</button>
+        </div>
+        <div id="pwErr" class="err-msg" style="display:none;">ভুল পাসওয়ার্ড।</div>
+      </div>
+    `;
+    document.getElementById('unlockBtn').addEventListener('click', ()=>{
+      const val = document.getElementById('pwInput').value;
+      if(val === ADMIN_PASSWORD){
+        isAdmin = true;
+        document.getElementById('libToggleBtn').textContent = 'লাইব্রেরিয়ান মোড সক্রিয়';
+        renderAdminZone();
+      }else{
+        document.getElementById('pwErr').style.display='block';
+      }
+    });
+    document.getElementById('cancelBtn').addEventListener('click', ()=>{ zone.innerHTML=''; });
+  });
+
+  document.getElementById('searchInput').addEventListener('input', renderGrid);
+
+  loadBooks();
+})();
+</script>
+</body>
+</html>
