@@ -129,7 +129,7 @@
       <h1 class="wordmark display">BoiCloud</h1>
       <p class="tagline mono">সবার জন্য উন্মুক্ত বইয়ের সংগ্রহশালা</p>
     </div>
-    <button class="lib-toggle" id="libToggleBtn">লাইব্রেরিয়ান মোড</button>
+    <button class="lib-toggle" id="libToggleBtn">ADMIN</button>
   </div>
 </header>
 
@@ -247,7 +247,7 @@ const CONFIG = {
     }
     if(filtered.length === 0){
       zone.innerHTML = `<div class="empty-state"><div class="display">কোনো বই পাওয়া যায়নি</div>
-        <div>${books.length===0 ? 'লাইব্রেরিয়ান মোডে গিয়ে প্রথম বইটি যোগ করুন।' : 'অন্য কিছু দিয়ে খুঁজে দেখুন।'}</div></div>`;
+        <div>${books.length===0 ? ADMIN গিয়ে প্রথম বইটি যোগ করুন।' : 'অন্য কিছু দিয়ে খুঁজে দেখুন।'}</div></div>`;
       return;
     }
     zone.innerHTML = `<div class="grid">` + filtered.map(b => `
@@ -290,7 +290,7 @@ const CONFIG = {
     if(!isAdmin){ zone.innerHTML=''; return; }
     zone.innerHTML = `
       <div class="admin-panel">
-        <h2 class="display">লাইব্রেরিয়ান মোড সক্রিয়</h2>
+        <h2 class="display">ADMIN সক্রিয়</h2>
         <p class="sub">নতুন বই যোগ করলে সরাসরি আপনার GitHub রিপোতে commit হবে। সবার জন্য দৃশ্যমান হতে কিছুটা সময় লাগতে পারে।</p>
         <div class="form-grid">
           <div class="full"><label>বইয়ের নাম *</label><input type="text" id="fTitle"></div>
@@ -345,7 +345,7 @@ const CONFIG = {
     document.getElementById('addBookBtn').addEventListener('click', handleAddBook);
     document.getElementById('lockBtn').addEventListener('click', ()=>{
       isAdmin=false; ghToken=null;
-      document.getElementById('libToggleBtn').textContent='লাইব্রেরিয়ান মোড';
+      document.getElementById('libToggleBtn').textContent='ADMIN';
       renderAdminZone();
     });
     renderManageList();
@@ -449,7 +449,7 @@ const CONFIG = {
       try{
         await ghGetFile(CONFIG.dataPath); // টোকেন যাচাই
         isAdmin = true;
-        document.getElementById('libToggleBtn').textContent = 'লাইব্রেরিয়ান মোড সক্রিয়';
+        document.getElementById('libToggleBtn').textContent = 'ADMIN সক্রিয়';
         renderAdminZone();
       }catch(e){
         ghToken = null;
