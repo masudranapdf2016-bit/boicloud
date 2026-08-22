@@ -247,7 +247,7 @@ const CONFIG = {
     }
     if(filtered.length === 0){
       zone.innerHTML = `<div class="empty-state"><div class="display">কোনো বই পাওয়া যায়নি</div>
-        <div>${books.length===0 ? 'ADMIN মোডে গিয়ে প্রথম বইটি যোগ করুন।' : 'অন্য কিছু দিয়ে খুঁজে দেখুন।'}</div>
+        <div>${books.length===0 ? 'ADMIN মোডে গিয়ে প্রথম বইটি যোগ করুন।' : 'অন্য কিছু দিয়ে খুঁজে দেখুন।'}</div></div>`;
       return;
     }
     zone.innerHTML = `<div class="grid">` + filtered.map(b => `
