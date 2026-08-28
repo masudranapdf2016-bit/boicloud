@@ -314,8 +314,9 @@ const CONFIG = {
         </div></div>
       ${hasPdf?`<iframe src="${pdfSrcNoToolbar}" oncontextmenu="return false;"></iframe>`:`<div class="no-pdf-msg">এই বইয়ের জন্য এখনও কোনো PDF যোগ করা হয়নি।</div>`}
     </div></div>`;
-    document.getElementById('closeViewer').addEventListener('click',()=>zone.innerHTML='');
-    document.getElementById('overlayEl').addEventListener('click',e=>{if(e.target.id==='overlayEl') zone.innerHTML='';});
+    document.getElementById('closeViewer').addEventListener('click', closeViewerModal);
+    document.getElementById('overlayEl').addEventListener('click',e=>{if(e.target.id==='overlayEl') closeViewerModal();});
+    history.pushState({boicloudViewer:true}, '');
 
     if(hasPdf){
       hitViewCount(book.id).then(count=>{
@@ -324,6 +325,15 @@ const CONFIG = {
       });
     }
   }
+
+  function closeViewerModal(){
+    document.getElementById('modalZone').innerHTML = '';
+    if(history.state && history.state.boicloudViewer){ history.back(); }
+  }
+
+  window.addEventListener('popstate', ()=>{
+    document.getElementById('modalZone').innerHTML = '';
+  });
 
   // ---------- Admin ----------
   function renderAdminZone(){
