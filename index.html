@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#F3ECDA; --paper-dark:#E7DCC0; --ink:#241C15; --ink-soft:#5B4E3D;
+    --paper:#FFFFFF; --paper-dark:#F0F0F0; --ink:#241C15; --ink-soft:#5B4E3D;
     --forest:#21402F; --forest-dark:#152A1F; --brass:#AD8236; --brass-light:#D9BC7C;
     --rust:#8B3A2B; --card:#FFFDF8; --shadow: 0 6px 18px rgba(36,28,21,0.16);
   }
@@ -84,7 +84,8 @@
     position:absolute; top:10px; left:50%; transform:translateX(-50%);}
   .call-number{position:absolute; top:10px; right:10px; font-family:'JetBrains Mono', monospace; font-size:0.62rem;
     background:var(--brass-light); color:var(--forest-dark); padding:2px 6px; border-radius:2px; letter-spacing:0.3px;}
-  .cover{height:160px; margin:22px 14px 12px; border-radius:2px; background-size:cover; background-position:center;
+  .view-count{position:absolute; top:10px; left:10px; font-size:0.62rem; color:var(--ink-soft);}
+  .cover{height:160px; margin:22px 14px 12px; border-radius:2px; background-size:contain; background-repeat:no-repeat; background-position:center; background-color:var(--paper-dark);
     display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Tiro Bangla', serif; font-size:2.4rem;
     box-shadow:0 2px 6px rgba(0,0,0,0.25);}
   .card-body{padding:0 14px 16px; flex:1; display:flex; flex-direction:column;}
@@ -129,7 +130,7 @@
       <h1 class="wordmark display">BoiCloud</h1>
       <p class="tagline mono">সবার জন্য উন্মুক্ত বইয়ের সংগ্রহশালা</p>
     </div>
-    <button class="lib-toggle" id="libToggleBtn">ADMIN</button>
+    <button class="lib-toggle" id="libToggleBtn" style="display:none;">ADMIN</button>
   </div>
 </header>
 
@@ -150,8 +151,8 @@
    CONFIG — deploy করার আগে এখানে আপনার তথ্য বসান
    ========================================================= */
 const CONFIG = {
-  owner:  'masudranapdf2016-bit',   // আপনার GitHub ইউজারনেম
-  repo:   'boicloud',        // যে পাবলিক রিপোতে ডেটা থাকবে
+  owner: 'masudranapdf2016-bit',   // আপনার GitHub ইউজারনেম
+  repo:  'boicloud',               // যে পাবলিক রিপোতে ডেটা থাকবে
   branch: 'main',
   dataPath: 'data/books.json',     // বইয়ের তালিকা এখানে জমা থাকবে
   pdfFolder: 'books'               // আপলোড করা PDF এখানে জমা থাকবে
@@ -165,13 +166,20 @@ const CONFIG = {
   let pdfMode = 'url';
   let pendingUpload = null; // {file, base64}
 
-  const isConfigured = CONFIG.owner !== 'YOUR_GITHUB_USERNAME' && CONFIG.repo !== 'YOUR_REPO_NAME';
+  const isConfigured = true;
+  const COUNTER_NAMESPACE = `${CONFIG.owner}-${CONFIG.repo}-boicloud`;
   const rawBase = `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/`;
   const apiBase = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/`;
 
   if(!isConfigured){
     document.getElementById('configBanner').style.display = 'block';
   }
+
+  // ADMIN বাটন গোপন রাখা হয়েছে — শুধু URL এর শেষে ?admin=1 যোগ করলে দেখা যাবে
+  if(new URLSearchParams(location.search).get('admin') === '1'){
+    document.getElementById('libToggleBtn').style.display = 'inline-block';
+  }
+
   document.getElementById('footNote').textContent =
     isConfigured
       ? `এই লাইব্রেরির তথ্য GitHub রিপোজিটরি ${CONFIG.owner}/${CONFIG.repo} -এ সংরক্ষিত থাকে — নতুন বই যোগ হলে সবার জন্য দৃশ্যমান হতে ১-৫ মিনিট সময় লাগতে পারে (CDN ক্যাশের কারণে)।`
@@ -182,6 +190,25 @@ const CONFIG = {
   function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
   function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
+
+  // ---------- View counter (public, no login needed) ----------
+  async function getViewCount(bookId){
+    try{
+      const res = await fetch(`https://api.countapi.xyz/get/${COUNTER_NAMESPACE}/${bookId}`);
+      if(!res.ok) return 0;
+      const data = await res.json();
+      return data.value || 0;
+    }catch(e){ return 0; }
+  }
+
+  async function hitViewCount(bookId){
+    try{
+      const res = await fetch(`https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}/${bookId}`);
+      if(!res.ok) return null;
+      const data = await res.json();
+      return data.value;
+    }catch(e){ return null; }
+  }
 
   async function loadBooksPublic(){
     if(!isConfigured){ books = []; renderGrid(); return; }
@@ -247,13 +274,14 @@ const CONFIG = {
     }
     if(filtered.length === 0){
       zone.innerHTML = `<div class="empty-state"><div class="display">কোনো বই পাওয়া যায়নি</div>
-        <div>${books.length===0 ? 'ADMIN মোডে গিয়ে প্রথম বইটি যোগ করুন।' : 'অন্য কিছু দিয়ে খুঁজে দেখুন।'}</div></div>`;
+        <div>${books.length===0 ? 'ADMIN মোডে গিয়ে প্রথম বইটি যোগ করুন।' : 'অন্য কিছু দিয়ে খুঁজে দেখুন।'}</div></div>`;
       return;
     }
     zone.innerHTML = `<div class="grid">` + filtered.map(b => `
       <div class="card" data-id="${b.id}">
         <div class="punch"></div>
         <div class="call-number mono">${escapeHtml(b.callNumber||'')}</div>
+        <div class="view-count mono" data-viewcount="${b.id}"></div>
         <div class="cover" style="${b.coverUrl?`background-image:url('${escapeHtml(b.coverUrl)}')`:`background:${colorFor(b.title)}`}">
           ${b.coverUrl?'':escapeHtml(b.title.charAt(0))}
         </div>
@@ -265,6 +293,10 @@ const CONFIG = {
       </div>`).join('') + `</div>`;
     zone.querySelectorAll('.open-btn').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation(); openViewer(btn.dataset.id);}));
     zone.querySelectorAll('.card').forEach(card=>card.addEventListener('click',()=>openViewer(card.dataset.id)));
+
+    zone.querySelectorAll('[data-viewcount]').forEach(el=>{
+      getViewCount(el.dataset.viewcount).then(count=>{ el.textContent = `${count} বার পঠিত`; });
+    });
   }
 
   function openViewer(id){
@@ -272,16 +304,25 @@ const CONFIG = {
     if(!book) return;
     const zone = document.getElementById('modalZone');
     const hasPdf = !!book.pdfSrc;
+    // toolbar=0 ও navpanes=0 ব্রাউজারের নিজস্ব PDF ভিউয়ারের ডাউনলোড/প্রিন্ট আইকন যতটা সম্ভব লুকিয়ে রাখে
+    const pdfSrcNoToolbar = hasPdf ? escapeHtml(book.pdfSrc) + '#toolbar=0&navpanes=0&scrollbar=1' : '';
     zone.innerHTML = `<div class="overlay" id="overlayEl"><div class="viewer">
       <div class="viewer-head"><h3>${escapeHtml(book.title)}</h3>
         <div class="actions">
-          ${hasPdf?`<a class="icon-btn" href="${escapeHtml(book.pdfSrc)}" download target="_blank" rel="noopener">ডাউনলোড</a>`:''}
+          <span class="mono" id="viewCountBadge" style="color:var(--brass-light); font-size:0.78rem;"></span>
           <button class="icon-btn" id="closeViewer">বন্ধ করুন ✕</button>
         </div></div>
-      ${hasPdf?`<iframe src="${escapeHtml(book.pdfSrc)}"></iframe>`:`<div class="no-pdf-msg">এই বইয়ের জন্য এখনও কোনো PDF যোগ করা হয়নি।</div>`}
+      ${hasPdf?`<iframe src="${pdfSrcNoToolbar}" oncontextmenu="return false;"></iframe>`:`<div class="no-pdf-msg">এই বইয়ের জন্য এখনও কোনো PDF যোগ করা হয়নি।</div>`}
     </div></div>`;
     document.getElementById('closeViewer').addEventListener('click',()=>zone.innerHTML='');
     document.getElementById('overlayEl').addEventListener('click',e=>{if(e.target.id==='overlayEl') zone.innerHTML='';});
+
+    if(hasPdf){
+      hitViewCount(book.id).then(count=>{
+        const badge = document.getElementById('viewCountBadge');
+        if(badge && count!==null) badge.textContent = `পড়া হয়েছে ${count} বার`;
+      });
+    }
   }
 
   // ---------- Admin ----------
@@ -432,7 +473,7 @@ const CONFIG = {
     const zone = document.getElementById('adminZone');
     zone.innerHTML = `
       <div class="admin-panel">
-        <h2 class="display">লাইব্রেরিয়ান লগইন</h2>
+        <h2 class="display">ADMIN লগইন</h2>
         <p class="sub">এখানে আপনার GitHub Personal Access Token দিন (শুধু "Contents: Read and write" পারমিশন সহ একটি fine-grained token বানান, এই একটি রিপোর জন্য)। টোকেন কোথাও সংরক্ষিত হয় না, শুধু এই ব্রাউজার সেশনে থাকে।</p>
         <div class="admin-lock">
           <input type="password" id="tokenInput" placeholder="github_pat_...">
