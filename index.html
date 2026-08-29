@@ -288,8 +288,9 @@ const CONFIG = {
 
   // ---------- Rendering: grid & viewer (same as before) ----------
   function renderGrid(){
-    const q = document.getElementById('searchInput').value.trim().toLowerCase();
-    const filtered = books.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+    const norm = s => (s||'').normalize('NFC').trim().toLowerCase();
+    const q = norm(document.getElementById('searchInput').value);
+    const filtered = books.filter(b => norm(b.title).includes(q) || norm(b.author).includes(q));
     document.getElementById('countTag').textContent = `মোট ${books.length} টি বই`;
     const zone = document.getElementById('gridZone');
     if(!isConfigured){
@@ -540,7 +541,7 @@ const CONFIG = {
 
   document.getElementById('masudRanaBtn').addEventListener('click', ()=>{
     const input = document.getElementById('searchInput');
-    input.value = 'কাজী আনোয়ার হোসেন';
+    input.value = 'আনোয়ার হোসেন';
     renderGrid();
     window.scrollTo({top:0, behavior:'smooth'});
   });
