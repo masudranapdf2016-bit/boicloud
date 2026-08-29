@@ -120,7 +120,24 @@
   .loading-msg{text-align:center; padding:60px; color:var(--ink-soft); font-family:'JetBrains Mono', monospace; font-size:0.85rem;}
   .shared-note{font-size:0.75rem; color:var(--ink-soft); text-align:center; margin-top:34px; line-height:1.6;}
 
-  @media (max-width:560px){.form-grid{grid-template-columns:1fr;} .wordmark{font-size:1.6rem;}}
+  .side-fab{
+    position:fixed; left:0; top:50%; transform:translateY(-50%) translateX(0);
+    writing-mode:vertical-rl; text-orientation:mixed;
+    background:linear-gradient(145deg, #A8482F, #6f2c20);
+    color:#F5E9D6; border:none; border-radius:0 10px 10px 0;
+    padding:20px 10px; font-family:'Tiro Bangla', serif; font-size:1.05rem; letter-spacing:3px;
+    cursor:pointer; z-index:40;
+    box-shadow: 5px 0 0 rgba(0,0,0,0.25), 8px 4px 14px rgba(0,0,0,0.35), inset -2px 0 0 rgba(255,255,255,0.2), inset 2px 0 0 rgba(0,0,0,0.25);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .side-fab:hover{ transform:translateY(-50%) translateX(4px); }
+  .side-fab:active{
+    transform:translateY(-50%) translateX(2px);
+    box-shadow: 2px 0 0 rgba(0,0,0,0.25), 3px 2px 8px rgba(0,0,0,0.3), inset -2px 0 0 rgba(255,255,255,0.15), inset 2px 0 0 rgba(0,0,0,0.3);
+  }
+
+  @media (max-width:560px){.form-grid{grid-template-columns:1fr;} .wordmark{font-size:1.6rem;}
+    .side-fab{padding:14px 7px; font-size:0.85rem; letter-spacing:2px;}}
 </style>
 </head>
 <body>
@@ -148,6 +165,8 @@
   <div id="gridZone"><div class="loading-msg">সংগ্রহশালা লোড হচ্ছে...</div></div>
   <p class="shared-note" id="footNote"></p>
 </main>
+
+<button id="masudRanaBtn" class="side-fab" title="মাসুদ রানার সব বই দেখুন">মাসুদ রানা</button>
 
 <div id="modalZone"></div>
 
@@ -517,6 +536,13 @@ const CONFIG = {
   });
 
   document.getElementById('searchInput').addEventListener('input', renderGrid);
+
+  document.getElementById('masudRanaBtn').addEventListener('click', ()=>{
+    const input = document.getElementById('searchInput');
+    input.value = 'কাজী আনোয়ার হোসেন';
+    renderGrid();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
 
   loadBooksPublic();
 })();
